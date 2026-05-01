@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ginni Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f4f3f0;color:#1a1a1a}
+header{background:#fff;border-bottom:1px solid #e5e3de;display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;position:sticky;top:0;z-index:10}
+.hlogo{display:flex;align-items:center;gap:8px}
+.hicon{width:28px;height:28px;background:#F5A623;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.hicon svg{width:15px;height:15px;fill:#fff}
+.htitle{font-size:15px;font-weight:700}
+.hright{display:flex;align-items:center;gap:8px}
+.live{display:none;align-items:center;gap:4px;font-size:11px;color:#16a34a;background:#f0fdf4;border:1px solid #bbf7d0;padding:3px 9px;border-radius:20px}
+.live.show{display:flex}
+.dot{width:6px;height:6px;border-radius:50%;background:#16a34a;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.av{width:30px;height:30px;border-radius:50%;background:#faeeda;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#c4831a;border:2px solid #F5A623;cursor:pointer}
+.tabs{background:#fff;border-bottom:1px solid #e5e3de;display:flex;padding:0 16px}
+.tab{padding:10px 16px;font-size:13px;font-weight:500;color:#888;cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:#c4831a;border-bottom-color:#F5A623}
+main{padding:16px}
+.view{display:none}
+.view.on{display:block}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:flex-end}
+.filters div label{display:block;font-size:11px;font-weight:600;color:#888;margin-bottom:4px}
+.filters input,.filters select{font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid #e5e3de;border-radius:8px;outline:none;background:#fff;color:#1a1a1a}
+.filters input:focus,.filters select:focus{border-color:#F5A623}
+.apply{padding:9px 20px;background:#F5A623;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;align-self:flex-end}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+@media(min-width:600px){.cards{grid-template-columns:repeat(4,1fr)}}
+.card{background:#fff;border:1px solid #e5e3de;border-radius:10px;padding:14px}
+.clbl{font-size:10px;font-weight:600;color:#888;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px}
+.cval{font-size:21px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
+.csub{font-size:11px;color:#888}
+.skel{height:26px;width:75%;background:linear-gradient(90deg,#f0eeeb 25%,#e5e3de 50%,#f0eeeb 75%);background-size:200% 100%;animation:sh 1.3s infinite;border-radius:5px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.alert{padding:12px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;line-height:1.6}
+.aerr{background:#fef2f2;border:1px solid #fca5a5;color:#dc2626}
+.aok{background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a}
+.scard{background:#fff;border:1px solid #e5e3de;border-radius:10px;padding:16px;margin-bottom:12px}
+.scard h3{font-size:14px;font-weight:700;margin-bottom:8px}
+.scard p{font-size:12px;color:#888;margin-bottom:12px;line-height:1.7}
+.scard label{display:block;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px;margin-top:10px}
+.scard input[type=text]{width:100%;padding:10px 12px;border:1px solid #e5e3de;border-radius:8px;font-size:12px;font-family:monospace;outline:none;background:#f0eeeb;color:#1a1a1a;cursor:pointer}
+.sbtn{padding:10px 20px;background:#F5A623;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:12px}
+.ucard{background:#fff;border:1px solid #e5e3de;border-radius:10px;padding:14px;margin-bottom:8px}
+.utop{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.uav{width:36px;height:36px;border-radius:50%;background:#faeeda;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#c4831a}
+.uname{font-size:14px;font-weight:600}
+.uun{font-size:11px;color:#888;font-family:monospace}
+.role{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.ra{background:#faeeda;color:#854f0b}.rm{background:#e6f1fb;color:#185fa5}.rv{background:#f0eeeb;color:#5f5e5a}
+.ustores{font-size:12px;color:#888;margin-bottom:10px}
+.ubtns{display:flex;gap:8px}
+.uedit{flex:1;padding:8px;border:1px solid #e5e3de;border-radius:7px;background:none;font-size:13px;cursor:pointer}
+.udel{padding:8px 14px;border:1px solid #fca5a5;border-radius:7px;background:none;color:#dc2626;font-size:13px;cursor:pointer}
+.umtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:flex-end}
+.overlay.show{display:flex}
+.drawer{background:#fff;border-radius:18px 18px 0 0;padding:20px 18px 36px;width:100%;max-height:90vh;overflow-y:auto}
+.handle{width:40px;height:4px;background:#e5e3de;border-radius:2px;margin:0 auto 16px}
+.drawer h3{font-size:16px;font-weight:700;margin-bottom:14px}
+.dfield{margin-bottom:12px}
+.dfield label{display:block;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px}
+.dfield input,.dfield select{width:100%;padding:11px 12px;border:1.5px solid #e5e3de;border-radius:9px;font-size:15px;font-family:inherit;outline:none}
+.dfield input:focus,.dfield select:focus{border-color:#F5A623}
+.sgrid{border:1px solid #e5e3de;border-radius:9px;max-height:160px;overflow-y:auto;padding:4px}
+.sitem{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:14px;cursor:pointer}
+.sitem input{width:18px;height:18px;accent-color:#F5A623;flex-shrink:0}
+.dfooter{display:flex;gap:10px;margin-top:16px}
+.dcancel{flex:1;padding:13px;border:1px solid #e5e3de;border-radius:9px;background:none;font-size:15px;cursor:pointer}
+.dsubmit{flex:2;padding:13px;background:#F5A623;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer}
+.ferr{font-size:13px;color:#dc2626;padding:10px;background:#fef2f2;border-radius:7px;margin-top:8px;display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="hlogo">
+    <div class="hicon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+    <span class="htitle" id="htitle">Dashboard</span>
+  </div>
+  <div class="hright">
+    <div class="live" id="live"><div class="dot"></div>Live</div>
+    <div class="av" id="av">PM</div>
+  </div>
+</header>
+<div class="tabs">
+  <div class="tab on" id="tab-dashboard" onclick="showTab('dashboard',this)">Dashboard</div>
+  <div class="tab" id="tab-users" onclick="showTab('users',this)" style="display:none">Users</div>
+  <div class="tab" onclick="showTab('settings',this)">Settings</div>
+</div>
+<main>
+  <div class="view on" id="view-dashboard">
+    <div class="filters">
+      <div><label>From</label><input type="date" id="from"></div>
+      <div><label>To</label><input type="date" id="to"></div>
+      <div><label>Store</label><select id="ssel"><option value="">All Stores</option></select></div>
+      <button class="apply" onclick="loadDash()">Apply</button>
+    </div>
+    <div id="derr"></div>
+    <div class="cards" id="cards">
+      <div class="card"><div class="clbl">Total Sales</div><div class="skel"></div></div>
+      <div class="card"><div class="clbl">Net Sale</div><div class="skel"></div></div>
+      <div class="card"><div class="clbl">Total Return</div><div class="skel"></div></div>
+      <div class="card"><div class="clbl">Avg Bill Value</div><div class="skel"></div></div>
+      <div class="card"><div class="clbl">Transactions</div><div class="skel"></div></div>
+      <div class="card"><div class="clbl">Avg Items/Bill</div><div class="skel"></div></div>
+      <div class="card"><div class="clbl">Total Discount</div><div class="skel"></div></div>
+      <div class="card"><div class="clbl">Total Tax</div><div class="skel"></div></div>
+    </div>
+  </div>
+  <div class="view" id="view-users">
+    <div class="umtop"><strong style="font-size:16px">Users</strong><button class="apply" onclick="openDrawer()">+ Add User</button></div>
+    <div id="ulist"></div>
+  </div>
+  <div class="view" id="view-settings">
+    <div class="scard">
+      <h3>GIP Webhook Status</h3>
+      <p>Your dashboard receives live sales data from Ginesys GIP automatically. Copy the webhook URL below and add it as a connector in Ginesys Connect under the Zwing app.</p>
+      <label>Your Webhook URL (click to copy)</label>
+      <input type="text" id="webhookurl" readonly onclick="this.select();document.execCommand('copy');document.getElementById('cstatus').innerHTML='<div class=aok>✓ Copied to clipboard!</div>'">
+      <button class="sbtn" onclick="loadStats()">Check Connection Status</button>
+      <div id="cstatus" style="margin-top:10px"></div>
+    </div>
+    <div class="scard">
+      <h3>Account</h3>
+      <p id="whoami"></p>
+      <button class="sbtn" style="background:#dc2626" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+</main>
+<div class="overlay" id="drawer">
+  <div class="drawer">
+    <div class="handle"></div>
+    <h3 id="dtitle">Add User</h3>
+    <div class="dfield"><label>Full Name</label><input type="text" id="un" placeholder="Full name"></div>
+    <div class="dfield"><label>Username</label><input type="text" id="uu" placeholder="login username" autocomplete="off"></div>
+    <div class="dfield"><label id="pwlbl">Password</label><input type="password" id="upw" placeholder="Set password"></div>
+    <div class="dfield"><label>Role</label>
+      <select id="urole" onchange="toggleS()">
+        <option value="admin">Admin</option>
+        <option value="manager" selected>Manager</option>
+        <option value="viewer">Viewer</option>
+      </select>
+    </div>
+    <div class="dfield" id="swrap">
+      <label>Stores (<span id="scnt">0</span> selected)</label>
+      <div class="sgrid" id="sgrid"></div>
+    </div>
+    <div class="ferr" id="ferr"></div>
+    <div class="dfooter">
+      <button class="dcancel" onclick="closeDrawer()">Cancel</button>
+      <button class="dsubmit" onclick="saveUser()">Save</button>
+    </div>
+  </div>
+</div>
+<script>
+var CU=null,stores=[],editId=null;
+var today=new Date(),week=new Date(+today-7*864e5);
+function fmt(d){return d.toISOString().slice(0,10);}
+document.getElementById('from').value=fmt(week);
+document.getElementById('to').value=fmt(today);
+
+fetch('/api/me').then(function(r){
+  if(!r.ok){window.location.href='/';return null;}
+  return r.json();
+}).then(function(d){
+  if(!d)return;
+  CU=d.user;
+  document.getElementById('av').textContent=CU.name.split(' ').map(function(x){return x[0];}).join('').slice(0,2).toUpperCase();
+  document.getElementById('whoami').textContent=CU.name+' ('+CU.role+')';
+  if(CU.role==='admin')document.getElementById('tab-users').style.display='block';
+  loadStores();
+  loadDash();
+  setInterval(loadDash,60000);
+}).catch(function(){window.location.href='/';});
+
+document.getElementById('av').onclick=function(){if(confirm('Sign out?'))logout();};
+function logout(){fetch('/api/logout',{method:'POST'}).then(function(){window.location.href='/';});}
+
+function showTab(n,btn){
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+  document.getElementById('view-'+n).classList.add('on');
+  btn.classList.add('on');
+  document.getElementById('htitle').textContent={dashboard:'Dashboard',users:'Users',settings:'Settings'}[n]||n;
+  if(n==='users')loadUsers();
+  if(n==='settings')loadStats();
+}
+
+async function loadStores(){
+  try{
+    var r=await fetch('/api/stores');
+    stores=await r.json();
+    var sel=document.getElementById('ssel');
+    sel.innerHTML='<option value="">All Stores</option>';
+    stores.forEach(function(s){
+      var o=document.createElement('option');
+      o.value=s.store_id;o.textContent=s.name;
+      sel.appendChild(o);
+    });
+  }catch(e){}
+}
+
+function setSkel(){
+  var l=['Total Sales','Net Sale','Total Return','Avg Bill Value','Transactions','Avg Items/Bill','Total Discount','Total Tax'];
+  document.getElementById('cards').innerHTML=l.map(function(x){return'<div class="card"><div class="clbl">'+x+'</div><div class="skel"></div></div>';}).join('');
+}
+
+async function loadDash(){
+  setSkel();
+  document.getElementById('derr').innerHTML='';
+  var from=document.getElementById('from').value;
+  var to=document.getElementById('to').value;
+  var store=document.getElementById('ssel').value;
+  try{
+    var r=await fetch('/api/dashboard?from_date='+from+'&to_date='+to+'&store='+store);
+    var d=await r.json();
+    if(!d.ok)throw new Error(d.error);
+    if(d.data.length===0){
+      document.getElementById('derr').innerHTML='<div class="alert aerr">No sales data yet. Make sure GIP webhook is connected in Ginesys Connect.</div>';
+      setSkel();return;
+    }
+    renderCards(d.data);
+    document.getElementById('live').classList.add('show');
+  }catch(e){
+    document.getElementById('derr').innerHTML='<div class="alert aerr">'+e.message+'</div>';
+    setSkel();
+  }
+}
+
+function renderCards(rows){
+  var sales=0,sub=0,tax=0,qty=0,disc=0,ret=0;
+  rows.forEach(function(r){
+    sales+=parseFloat(r.total||0);sub+=parseFloat(r.subtotal||0);tax+=parseFloat(r.tax||0);
+    qty+=parseInt(r.total_qty||0);
+    disc+=parseFloat(r.item_level_promo||0)+parseFloat(r.item_level_manual_discount||0)+parseFloat(r.bill_discount||0)+parseFloat(r.bill_level_manual_discount||0);
+    if(parseFloat(r.subtotal||0)>parseFloat(r.total||0))ret+=parseFloat(r.subtotal||0)-parseFloat(r.total||0);
+  });
+  var n=rows.length,ab=n?sales/n:0,as2=n?qty/n:0;
+  function f(v){return'₹ '+Math.round(v).toLocaleString('en-IN');}
+  var cards=[
+    {l:'Total Sales',v:f(sales),s:n+' bills'},
+    {l:'Net Sale',v:f(sales-ret),s:n+' transactions'},
+    {l:'Total Return',v:f(ret),s:'returns'},
+    {l:'Avg Bill Value',v:f(ab),s:n+' bills'},
+    {l:'Transactions',v:n,s:'total invoices'},
+    {l:'Avg Items/Bill',v:as2.toFixed(2),s:'items per bill'},
+    {l:'Total Discount',v:f(disc),s:sub>0?(disc/sub*100).toFixed(1)+'% of subtotal':''},
+    {l:'Total Tax',v:f(tax),s:'GST collected'},
+  ];
+  document.getElementById('cards').innerHTML=cards.map(function(c){
+    return'<div class="card"><div class="clbl">'+c.l+'</div><div class="cval">'+c.v+'</div><div class="csub">'+c.s+'</div></div>';
+  }).join('');
+}
+
+async function loadStats(){
+  try{
+    var r=await fetch('/api/stats');
+    var d=await r.json();
+    document.getElementById('webhookurl').value=d.webhook_url||window.location.origin+'/webhook/gip';
+    var st=document.getElementById('cstatus');
+    if(d.total_records>0){
+      st.innerHTML='<div class="alert aok">✓ Connected! '+d.total_records+' sales records received. Last update: '+(d.last_received?new Date(d.last_received).toLocaleString('en-IN'):'-')+'</div>';
+    }else{
+      st.innerHTML='<div class="alert aerr">No data received yet. Add the webhook URL as a connector in Ginesys Connect → Zwing app → zpos-inventory.invoice.created event.</div>';
+    }
+  }catch(e){}
+}
+
+async function loadUsers(){
+  var r=await fetch('/api/users');
+  var users=await r.json();
+  document.getElementById('ulist').innerHTML=users.map(function(u){
+    var ini=u.name.split(' ').map(function(x){return x[0];}).join('').slice(0,2).toUpperCase();
+    var rc={admin:'ra',manager:'rm',viewer:'rv'}[u.role]||'rv';
+    return'<div class="ucard"><div class="utop"><div class="uav">'+ini+'</div><div><div class="uname">'+u.name+' <span class="role '+rc+'">'+u.role+'</span></div><div class="uun">'+u.username+'</div></div></div>'+
+    '<div class="ustores">'+(u.role==='admin'?'All stores':u.stores&&u.stores.length?u.stores.slice(0,3).join(', '):'No stores')+'</div>'+
+    '<div class="ubtns"><button class="uedit" onclick="openDrawer('+u.id+')">Edit</button>'+(u.id!==1?'<button class="udel" onclick="delUser('+u.id+')">Delete</button>':'')+'</div></div>';
+  }).join('');
+}
+
+function openDrawer(id){
+  editId=id||null;
+  document.getElementById('dtitle').textContent=id?'Edit User':'Add User';
+  document.getElementById('pwlbl').textContent=id?'New Password (blank=keep)':'Password';
+  document.getElementById('ferr').style.display='none';
+  document.getElementById('un').value='';document.getElementById('uu').value='';
+  document.getElementById('upw').value='';document.getElementById('urole').value='manager';
+  document.getElementById('sgrid').innerHTML=stores.map(function(s){
+    return'<label class="sitem"><input type="checkbox" value="'+s.store_id+'" onchange="document.getElementById(\'scnt\').textContent=document.querySelectorAll(\'#sgrid input:checked\').length"><span>'+s.name+'</span></label>';
+  }).join('')||'<div style="padding:10px;font-size:13px;color:#888">No stores loaded yet — make a sale first</div>';
+  if(id){
+    fetch('/api/users').then(function(r){return r.json();}).then(function(users){
+      var u=users.find(function(x){return x.id===id;});
+      if(!u)return;
+      document.getElementById('un').value=u.name;document.getElementById('uu').value=u.username;
+      document.getElementById('urole').value=u.role;
+      document.querySelectorAll('#sgrid input').forEach(function(cb){cb.checked=u.stores&&u.stores.includes(cb.value);});
+      document.getElementById('scnt').textContent=document.querySelectorAll('#sgrid input:checked').length;
+      toggleS();
+    });
+  }
+  toggleS();
+  document.getElementById('drawer').classList.add('show');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('show');}
+function toggleS(){document.getElementById('swrap').style.display=document.getElementById('urole').value==='admin'?'none':'block';}
+
+async function saveUser(){
+  var name=document.getElementById('un').value.trim();
+  var username=document.getElementById('uu').value.trim();
+  var pw=document.getElementById('upw').value;
+  var role=document.getElementById('urole').value;
+  var sel=Array.from(document.querySelectorAll('#sgrid input:checked')).map(function(c){return c.value;});
+  var ferr=document.getElementById('ferr');
+  if(!name||!username){ferr.textContent='Name and username required';ferr.style.display='block';return;}
+  if(!editId&&!pw){ferr.textContent='Password required';ferr.style.display='block';return;}
+  var body={name:name,username:username,role:role,stores:role==='admin'?[]:sel};
+  if(pw)body.password=pw;
+  var r=await fetch(editId?'/api/users/'+editId:'/api/users',{method:editId?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  var d=await r.json();
+  if(!r.ok){ferr.textContent=d.error;ferr.style.display='block';return;}
+  closeDrawer();loadUsers();
+}
+
+async function delUser(id){
+  if(!confirm('Delete this user?'))return;
+  await fetch('/api/users/'+id,{method:'DELETE'});
+  loadUsers();
+}
+</script>
+</body>
+</html>

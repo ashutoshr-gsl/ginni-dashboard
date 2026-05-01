@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ginni Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f4f3f0;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.box{background:#fff;border-radius:16px;padding:32px;width:340px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.logo-icon{width:40px;height:40px;background:#F5A623;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:20px;height:20px;fill:#fff}
+h2{font-size:16px;font-weight:700}
+p{font-size:12px;color:#888;margin-top:2px}
+label{display:block;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;margin-top:14px}
+input{width:100%;padding:12px;border:1.5px solid #e5e3de;border-radius:8px;font-size:15px;outline:none;font-family:inherit}
+input:focus{border-color:#F5A623}
+button{width:100%;margin-top:20px;padding:13px;background:#F5A623;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.err{color:#dc2626;font-size:13px;background:#fef2f2;border:1px solid #fca5a5;padding:10px;border-radius:7px;margin-top:12px;display:none}
+</style>
+</head>
+<body>
+<div class="box" id="loginBox">
+  <div class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+    <div><h2>Ginni Systems</h2><p>Sales Dashboard</p></div>
+  </div>
+  <label for="un">Username</label>
+  <input type="text" id="un" placeholder="admin" autocomplete="username">
+  <label for="pw">Password</label>
+  <input type="password" id="pw" placeholder="Admin@123" autocomplete="current-password">
+  <div class="err" id="err"></div>
+  <button id="loginBtn">Sign In</button>
+</div>
+<script>
+document.getElementById('loginBtn').addEventListener('click', async function() {
+  var u = document.getElementById('un').value.trim();
+  var p = document.getElementById('pw').value;
+  var e = document.getElementById('err');
+  e.style.display = 'none';
+  if (!u || !p) { e.textContent = 'Enter username and password'; e.style.display = 'block'; return; }
+  try {
+    var r = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p})});
+    var d = await r.json();
+    if (!r.ok) { e.textContent = d.error || 'Login failed'; e.style.display = 'block'; return; }
+    window.location.href = '/dashboard.html';
+  } catch(ex) {
+    e.textContent = 'Connection error: ' + ex.message;
+    e.style.display = 'block';
+  }
+});
+document.getElementById('pw').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+// Auto-check if already logged in
+fetch('/api/me').then(function(r) { if(r.ok) window.location.href = '/dashboard.html'; }).catch(function(){});
+</script>
+</body>
+</html>
