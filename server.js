@@ -51,14 +51,14 @@ app.get('/api/me', auth, (req,res) => res.json({user:req.session.user}));
 app.post('/webhook/gip', (req,res) => {
   try {
     const body = req.body;
-    console.log('GIP webhook received:', JSON.stringify(body).slice(0,200));
+    console.log('GIP webhook received:', JSON.stringify(body).slice(0,500));
     const events = Array.isArray(body) ? body : [body];
     events.forEach(event => {
       const data = event.fullDocument || event.data || event.payload || event.invoice || event;
       if (!data) return;
       const record = {
         id: data.id || data.invoice_id || Date.now(),
-        invoice_id: data.invoice_id || data.invoiceId || data.id || '',
+        invoice_id: data.invoice_id || data.invoiceId || data.id || String(Date.now()),
         name: data.store_name || data.name || data.storeName || '',
         store_reference_code: data.store_reference_code || data.storeCode || '',
         City: data.City || data.city || '',
@@ -77,13 +77,13 @@ app.post('/webhook/gip', (req,res) => {
         bill_level_manual_discount: parseFloat(data.bill_level_manual_discount || 0),
         received_at: new Date().toISOString()
       };
-      const exists = salesData.find(s => s.invoice_id && s.invoice_id === record.invoice_id);
-      if (!exists && record.invoice_id) { salesData.push(record); saveSales(); }
+      const exists = salesData.find(s => s.invoice_id === record.invoice_id);
+      if (!exists) { salesData.push(record); saveSales(); }
     });
     res.json({ok:true, received: events.length});
   } catch(e) {
     console.error('Webhook error:', e.message);
-    res.status(500).json({error:e.message});
+    res.status(200).json({ok:true});
   }
 });
 
@@ -123,6 +123,7 @@ app.get('/api/stats', auth, admin, (req,res) => {
 app.delete('/api/sales', auth, admin, (req,res) => { salesData = []; saveSales(); res.json({ok:true}); });
 
 app.get('/api/users', auth, admin, (req,res) => res.json(readUsers().map(u=>({...u,password:undefined}))));
+
 app.post('/api/users', auth, admin, (req,res) => {
   const {name,username,password,role,stores} = req.body;
   if(!name||!username||!password) return res.status(400).json({error:'Missing fields'});
@@ -131,6 +132,7 @@ app.post('/api/users', auth, admin, (req,res) => {
   users.push({id:Date.now(),name,username,password:bcrypt.hashSync(password,10),role:role||'viewer',stores:role==='admin'?[]:(stores||[])});
   writeUsers(users); res.json({ok:true});
 });
+
 app.put('/api/users/:id', auth, admin, (req,res) => {
   const users = readUsers();
   const i = users.findIndex(u=>u.id===parseInt(req.params.id));
@@ -141,6 +143,7 @@ app.put('/api/users/:id', auth, admin, (req,res) => {
     ...(password?{password:bcrypt.hashSync(password,10)}:{})};
   writeUsers(users); res.json({ok:true});
 });
+
 app.delete('/api/users/:id', auth, admin, (req,res) => {
   if(parseInt(req.params.id)===1) return res.status(400).json({error:'Cannot delete main admin'});
   writeUsers(readUsers().filter(u=>u.id!==parseInt(req.params.id)));
