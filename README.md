@@ -1,0 +1,2 @@
+# ginni-dashboard
+dashboard view
