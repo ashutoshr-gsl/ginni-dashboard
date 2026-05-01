@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Ginni Sales Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --gold:#F5A623;--gold-lt:#faeeda;--gold-dk:#c4831a;
+  --ink:#1a1a1a;--ink2:#444;--ink3:#888;--ink4:#ccc;
+  --bg:#f4f3f0;--surface:#fff;--surface2:#f0eeeb;
+  --green:#16a34a;--red:#dc2626;--border:#e5e3de;
+  --r:10px;--nav-h:56px;
+}
+html,body{min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+
+/* ── LOGIN ── */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
+.login-card{background:var(--surface);border-radius:16px;padding:32px 28px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.login-icon{width:44px;height:44px;background:var(--gold);border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.login-icon svg{width:24px;height:24px;fill:#fff}
+.login-title{font-size:16px;font-weight:600}
+.login-sub{font-size:12px;color:var(--ink3);margin-top:2px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.field input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:15px;font-family:inherit;outline:none;background:var(--surface);color:var(--ink);transition:border .15s}
+.field input:focus{border-color:var(--gold)}
+.btn-login{width:100%;padding:13px;background:var(--gold);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s}
+.btn-login:active{background:var(--gold-dk)}
+.login-err{color:var(--red);font-size:13px;padding:10px 12px;background:#fef2f2;border-radius:7px;margin-bottom:14px;display:none}
+
+/* ── APP SHELL ── */
+#app{display:none;flex-direction:column;min-height:100vh}
+#app.visible{display:flex}
+
+/* Top bar */
+#topbar{background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;flex-shrink:0;position:sticky;top:0;z-index:50}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-icon{width:30px;height:30px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.tb-icon svg{width:17px;height:17px;fill:#fff}
+.tb-title{font-size:15px;font-weight:600}
+.tb-right{display:flex;align-items:center;gap:10px}
+.live-badge{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--green);background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:3px 9px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.av{width:32px;height:32px;border-radius:50%;background:var(--gold-lt);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold-dk);border:2px solid var(--gold);cursor:pointer}
+
+/* Content */
+#content{flex:1;overflow-y:auto;padding-bottom:calc(var(--nav-h) + 12px)}
+.view{display:none;padding:14px 14px}
+.view.active{display:block}
+
+/* Bottom nav */
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--ink4);transition:color .15s;padding:6px 0;border:none;background:none;font-family:inherit}
+.nav-item.active{color:var(--gold)}
+.nav-item svg{width:22px;height:22px}
+.nav-item span{font-size:10px;font-weight:500}
+
+/* Filters */
+.filter-bar{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-pill{display:flex;align-items:center;gap:5px;padding:7px 12px;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-size:13px;white-space:nowrap;cursor:pointer;color:var(--ink2)}
+.filter-pill.active{background:var(--gold-lt);border-color:var(--gold);color:var(--gold-dk);font-weight:500}
+.filter-pill svg{width:13px;height:13px}
+
+/* Date range */
+.date-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.date-row label{font-size:12px;color:var(--ink3);font-weight:500}
+.date-row input[type=date]{font-family:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;outline:none;background:var(--surface);color:var(--ink);flex:1;min-width:120px}
+.date-row input[type=date]:focus{border-color:var(--gold)}
+.btn-apply{padding:8px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn-apply:active{background:var(--gold-dk)}
+select{font-family:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;outline:none;background:var(--surface);color:var(--ink);width:100%}
+select:focus{border-color:var(--gold)}
+
+/* Metric cards */
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.mcard{background:var(--surface);border-radius:var(--r);padding:14px 14px;border:1px solid var(--border)}
+.mcard-lbl{font-size:10px;font-weight:600;color:var(--ink3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.mcard-val{font-size:20px;font-weight:700;color:var(--ink);line-height:1.1;margin-bottom:4px;font-variant-numeric:tabular-nums}
+.mcard-sub{font-size:11px;color:var(--ink3)}
+.mcard-val.skeleton{height:26px;width:80%;background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.3s infinite;border-radius:5px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Section header */
+.section-hdr{font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.section-meta{font-size:12px;color:var(--ink3);font-weight:400}
+
+/* Transaction cards (mobile-friendly table alternative) */
+.txn-list{display:flex;flex-direction:column;gap:8px}
+.txn-card{background:var(--surface);border-radius:var(--r);padding:12px 14px;border:1px solid var(--border)}
+.txn-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.txn-invoice{font-size:11px;font-family:monospace;color:var(--ink3)}
+.txn-amount{font-size:16px;font-weight:700;color:var(--ink)}
+.txn-store{display:inline-block;padding:2px 8px;background:var(--gold-lt);color:var(--gold-dk);border-radius:20px;font-size:11px;font-weight:500;margin-bottom:5px}
+.txn-row{display:flex;justify-content:space-between;font-size:12px;color:var(--ink3);margin-top:3px}
+.txn-row span:last-child{color:var(--ink2);font-weight:500}
+.txn-method{display:inline-block;padding:2px 7px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;font-size:11px;color:var(--ink3)}
+.disc-val{color:var(--red)}
+
+/* Pagination */
+.pag{display:flex;align-items:center;justify-content:space-between;padding:14px 0 4px}
+.pag-info{font-size:12px;color:var(--ink3)}
+.pag-btns{display:flex;gap:6px}
+.pag-btn{padding:7px 14px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink2);cursor:pointer;font-family:inherit}
+.pag-btn:active{background:var(--surface2)}
+.pag-btn.cur{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:600}
+.pag-btn:disabled{opacity:.35;pointer-events:none}
+
+/* Error */
+.err{padding:12px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;color:var(--red);font-size:13px;margin-bottom:12px;line-height:1.6}
+
+/* User management */
+.um-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.btn-add{padding:9px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-add:active{background:var(--gold-dk)}
+.user-card{background:var(--surface);border-radius:var(--r);padding:14px;border:1px solid var(--border);margin-bottom:8px}
+.user-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.user-av{width:38px;height:38px;border-radius:50%;background:var(--gold-lt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--gold-dk);flex-shrink:0}
+.user-name{font-size:14px;font-weight:600}
+.user-un{font-size:12px;color:var(--ink3);font-family:monospace}
+.role-badge{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.role-admin{background:#faeeda;color:#854f0b}
+.role-manager{background:#e6f1fb;color:#185fa5}
+.role-viewer{background:#f0eeeb;color:#5f5e5a}
+.user-stores{font-size:12px;color:var(--ink3);margin-bottom:10px;line-height:1.5}
+.user-actions{display:flex;gap:8px}
+.btn-edit{flex:1;padding:8px;border:1px solid var(--border);border-radius:7px;background:none;color:var(--ink2);font-size:13px;cursor:pointer;font-family:inherit}
+.btn-edit:active{background:var(--surface2)}
+.btn-del{padding:8px 16px;border:1px solid #fca5a5;border-radius:7px;background:none;color:var(--red);font-size:13px;cursor:pointer;font-family:inherit}
+.btn-del:active{background:#fef2f2}
+
+/* Settings */
+.settings-card{background:var(--surface);border-radius:var(--r);padding:16px;border:1px solid var(--border);margin-bottom:12px}
+.settings-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.settings-desc{font-size:12px;color:var(--ink3);margin-bottom:12px;line-height:1.6}
+.inp-full{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:monospace;outline:none;background:var(--surface2);color:var(--ink)}
+.inp-full:focus{border-color:var(--gold);background:var(--surface)}
+textarea.inp-full{resize:vertical;min-height:80px}
+.btn-save{padding:10px 20px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:10px}
+.btn-save:active{background:var(--gold-dk)}
+.conn-status{padding:10px 12px;border-radius:7px;font-size:13px;margin-top:8px}
+.conn-ok{background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0}
+.conn-fail{background:#fef2f2;color:var(--red);border:1px solid #fca5a5}
+
+/* Drawer / bottom sheet */
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:flex-end}
+.drawer-overlay.open{display:flex}
+.drawer{background:var(--surface);border-radius:18px 18px 0 0;padding:20px 18px 32px;width:100%;max-height:90vh;overflow-y:auto}
+.drawer-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+.drawer h3{font-size:16px;font-weight:600;margin-bottom:16px}
+.form-field{margin-bottom:14px}
+.form-field label{display:block;font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+.form-field input,.form-field select{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:15px;font-family:inherit;outline:none;background:var(--surface);color:var(--ink)}
+.form-field input:focus,.form-field select:focus{border-color:var(--gold)}
+.stores-check{border:1px solid var(--border);border-radius:9px;max-height:180px;overflow-y:auto;padding:4px}
+.store-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:7px;cursor:pointer;font-size:14px}
+.store-item:active{background:var(--gold-lt)}
+.store-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--gold);cursor:pointer;flex-shrink:0}
+.drawer-footer{display:flex;gap:10px;margin-top:18px}
+.btn-cancel{flex:1;padding:12px;border:1px solid var(--border);border-radius:9px;background:none;color:var(--ink2);font-size:15px;font-family:inherit;cursor:pointer}
+.btn-submit{flex:2;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer}
+.btn-submit:active{background:var(--gold-dk)}
+.form-err{font-size:13px;color:var(--red);padding:10px 12px;background:#fef2f2;border-radius:7px;margin-top:8px;display:none}
+
+@media(min-width:600px){
+  .cards-grid{grid-template-columns:repeat(4,1fr)}
+  .view{padding:20px 20px}
+  #bottom-nav{padding:0}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <div>
+        <div class="login-title">Ginni Systems</div>
+        <div class="login-sub">Sales Dashboard</div>
+      </div>
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <div class="field">
+      <label>Username</label>
+      <input id="login-user" type="text" placeholder="Enter username" autocomplete="username" inputmode="text">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="login-pass" type="password" placeholder="Enter password" autocomplete="current-password">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="topbar">
+    <div class="tb-left">
+      <div class="tb-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <span class="tb-title" id="topbar-title">Dashboard</span>
+    </div>
+    <div class="tb-right">
+      <div class="live-badge" id="live-badge" style="display:none"><div class="live-dot"></div>Live</div>
+      <div class="av" id="user-av" onclick="confirmLogout()">PM</div>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="date-row">
+        <label>From</label>
+        <input type="date" id="d-from">
+        <label>To</label>
+        <input type="date" id="d-to">
+      </div>
+      <div style="margin-bottom:12px">
+        <select id="d-store" onchange="loadDashboard()"><option value="">All Stores</option></select>
+      </div>
+      <button class="btn-apply" style="width:100%;margin-bottom:16px" onclick="loadDashboard()">Apply Filter</button>
+      <div id="d-err" class="err" style="display:none"></div>
+      <div class="cards-grid" id="cards-grid">
+        <div class="mcard"><div class="mcard-lbl">Total Sales</div><div class="mcard-val skeleton"></div></div>
+        <div class="mcard"><div class="mcard-lbl">Net Sale</div><div class="mcard-val skeleton"></div></div>
+        <div class="mcard"><div class="mcard-lbl">Total Return</div><div class="mcard-val skeleton"></div></div>
+        <div class="mcard"><div class="mcard-lbl">Avg Bill</div><div class="mcard-val skeleton"></div></div>
+        <div class="mcard"><div class="mcard-lbl">Transactions</div><div class="mcard-val skeleton"></div></div>
+        <div class="mcard"><div class="mcard-lbl">Avg Items</div><div class="mcard-val skeleton"></div></div>
+        <div class="mcard"><div class="mcard-lbl">Discount</div><div class="mcard-val skeleton"></div></div>
+        <div class="mcard"><div class="mcard-lbl">Total Tax</div><div class="mcard-val skeleton"></div></div>
+      </div>
+    </div>
+
+    <!-- SALES REPORT -->
+    <div class="view" id="view-sales">
+      <div class="date-row">
+        <label>From</label>
+        <input type="date" id="s-from">
+        <label>To</label>
+        <input type="date" id="s-to">
+      </div>
+      <div style="margin-bottom:10px">
+        <select id="s-store"><option value="">All Stores</option></select>
+      </div>
+      <button class="btn-apply" style="width:100%;margin-bottom:14px" onclick="loadSales(1)">Apply Filter</button>
+      <div id="s-err" class="err" style="display:none"></div>
+      <div class="section-hdr">
+        Transactions
+        <span class="section-meta" id="s-meta"></span>
+      </div>
+      <div class="txn-list" id="txn-list">
+        <div style="padding:32px;text-align:center;color:var(--ink3);font-size:13px">Loading…</div>
+      </div>
+      <div class="pag">
+        <span class="pag-info" id="s-pag-info"></span>
+        <div class="pag-btns" id="s-pag-btns"></div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="view" id="view-users">
+      <div class="um-hdr">
+        <span style="font-size:16px;font-weight:600">Users</span>
+        <button class="btn-add" onclick="openUserDrawer()">+ Add User</button>
+      </div>
+      <div id="users-list"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="view" id="view-settings">
+      <div class="settings-card">
+        <div class="settings-title">Zwing Session Cookies</div>
+        <div class="settings-desc">
+          Paste your Zwing cookie string here (from Chrome DevTools → Network → any Zwing request → Headers → Cookie). This lets the dashboard fetch live data on behalf of all users.
+        </div>
+        <label style="font-size:11px;font-weight:600;color:var(--ink3);display:block;margin-bottom:5px">COOKIE STRING</label>
+        <textarea class="inp-full" id="zwing-cookies" placeholder="_vid_t=...; XSRF-TOKEN=...; laravel_session=..."></textarea>
+        <label style="font-size:11px;font-weight:600;color:var(--ink3);display:block;margin-bottom:5px;margin-top:10px">X-XSRF-TOKEN</label>
+        <input class="inp-full" id="zwing-xsrf" type="text" placeholder="eyJpdiI6...">
+        <button class="btn-save" onclick="saveZwingCreds()">Save & Test Connection</button>
+        <div id="conn-status" style="margin-top:10px"></div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-title">How to get the cookie</div>
+        <div class="settings-desc" style="line-height:1.8">
+          1. Open <strong>lc.gozwing.com</strong> in Chrome and log in<br>
+          2. Press <strong>F12</strong> → Network tab → Fetch/XHR<br>
+          3. Click any <strong>sales-report</strong> request<br>
+          4. Headers tab → scroll to <strong>Request Headers</strong><br>
+          5. Copy the full <strong>cookie:</strong> value and paste above<br>
+          6. Also copy <strong>x-xsrf-token:</strong> value
+        </div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-title">Session</div>
+        <div class="settings-desc">Logged in as <strong id="settings-user"></strong></div>
+        <button class="btn-save" style="background:#dc2626" onclick="confirmLogout()">Sign Out</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav id="bottom-nav">
+    <button class="nav-item active" id="nav-dashboard" onclick="switchView('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-item" id="nav-sales" onclick="switchView('sales',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Sales</span>
+    </button>
+    <button class="nav-item" id="nav-users" onclick="switchView('users',this)" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Users</span>
+    </button>
+    <button class="nav-item" id="nav-settings" onclick="switchView('settings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+</div>
+
+<!-- User Drawer -->
+<div class="drawer-overlay" id="user-drawer">
+  <div class="drawer">
+    <div class="drawer-handle"></div>
+    <h3 id="drawer-title">Add User</h3>
+    <div class="form-field"><label>Full Name</label><input id="u-name" placeholder="Full name" type="text"></div>
+    <div class="form-field"><label>Username</label><input id="u-username" placeholder="login username" type="text" autocomplete="off"></div>
+    <div class="form-field"><label id="pw-label">Password</label><input id="u-pw" placeholder="Set password" type="password" autocomplete="new-password"></div>
+    <div class="form-field"><label>Role</label>
+      <select id="u-role" onchange="toggleStoresField()">
+        <option value="admin">Admin — sees all stores</option>
+        <option value="manager" selected>Manager — assigned stores only</option>
+        <option value="viewer">Viewer — assigned stores only</option>
+      </select>
+    </div>
+    <div class="form-field" id="stores-field">
+      <label>Assign Stores <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">(<span id="store-count">0</span> selected)</span></label>
+      <div class="stores-check" id="stores-check"></div>
+    </div>
+    <div class="form-err" id="drawer-err"></div>
+    <div class="drawer-footer">
+      <button class="btn-cancel" onclick="closeDrawer()">Cancel</button>
+      <button class="btn-submit" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
